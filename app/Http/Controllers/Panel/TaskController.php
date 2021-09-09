@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Panel;
 
 use App\Http\Controllers\Controller;
+use App\Models\Project;
+use App\Models\Task;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -23,10 +25,11 @@ class TaskController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create($pid)
     {
+        $project = Project::findOrFail($pid);
         $users = User::all();
-        return view('panel.task.create',compact('users'));
+        return view('panel.task.create',compact('users','project'));
     }
 
     /**
@@ -35,7 +38,7 @@ class TaskController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(Request $request,$pid)
     {
 
         $request->validate([
@@ -43,9 +46,27 @@ class TaskController extends Controller
            'taskDetail'=>'required',
            'assignTo'=>'required|array',
             'taskType'=>'required',
-            'taskStatus'=>'required'
         ]);
-        dd($request);
+        $taskModel = new Task();
+        $taskModel->title=$request->input("taskName");
+        $taskModel->description= $request->input("taskDetail");
+        $taskModel->project_id=$pid;
+        $taskModel->created_by=$request->user()->id;
+        $assignTo=[];
+        if($request->input("assignTo"))
+        {
+            foreach ($request->input("assignTo") as $as)
+            {
+                array_push($assignTo,$as);
+            }
+        }
+        $taskModel->assign_to=json_encode($assignTo);
+        $taskModel->type=$request->input("taskType");
+        $taskModel->status=1;
+        $taskModel->save();
+        return redirect()->route("projectInfo",[$pid]);
+
+
     }
 
     /**
@@ -54,9 +75,12 @@ class TaskController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show($pid,$id)
     {
-        //
+        $project = Project::findOrFail($pid);
+        $task = Task::findOrFail($id);
+
+        return view("panel.task.show",compact('project','task'));
     }
 
     /**
@@ -67,7 +91,12 @@ class TaskController extends Controller
      */
     public function edit($id,$taskId)
     {
-        echo $taskId;
+
+        $project = Project::findOrFail($id);
+        $task = Task::findOrFail($taskId);
+        $users = User::all();
+
+        return view("panel.task.edit",compact('project','task','users'));
 
     }
 
@@ -78,9 +107,31 @@ class TaskController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request,$pid, $id)
     {
-        //
+        $request->validate([
+            'taskName'=>'required',
+            'taskDetail'=>'required',
+            'assignTo'=>'required|array',
+            'taskType'=>'required',
+             'taskStatus'=>'required'
+        ]);
+        $taskModel = Task::findOrFail($id);
+        $taskModel->title=$request->input("taskName");
+        $taskModel->description= $request->input("taskDetail");
+        $assignTo=[];
+        if($request->input("assignTo"))
+        {
+            foreach ($request->input("assignTo") as $as)
+            {
+                array_push($assignTo,$as);
+            }
+        }
+        $taskModel->assign_to=json_encode($assignTo);
+        $taskModel->type=$request->input("taskType");
+        $taskModel->status=$request->input("taskStatus");
+        $taskModel->save();
+        return redirect()->route("projectInfo",[$pid]);
     }
 
     /**
@@ -89,8 +140,18 @@ class TaskController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy($pid,$id)
     {
-        //
+        $task = Task::findOrFail($id);
+        $comments= $task->comments;
+        if($comments!=null)
+        {
+            foreach ($comments as $comment)
+            {
+                $comment->delete();
+            }
+        }
+        $task->delete();
+        return redirect()->route("projectInfo",[$pid]);
     }
 }

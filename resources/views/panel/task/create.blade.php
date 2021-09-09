@@ -16,6 +16,9 @@
                     <label for="">Assign To</label>
                     <select name="assignTo[]" id="" class="form-control" multiple>
                         @foreach($users as $user)
+                            @if($user->id==$project->project_leader)
+                                @php continue; @endphp
+                             @endif
                             <option value="{{$user->id}}">{{$user->email}}</option>
                         @endforeach
                     </select>
@@ -32,17 +35,16 @@
 
                     </select>
                 </div>
-                <div class="form-group">
-                    <label for="">Task Status</label>
-                    <select name="taskStatus" class="form-control">
-                        <option value="">Task Status</option>
-                        <option selected="selected" value="new">New</option>
-                        <option value="pending">Pending</option>
-                        <option value="completed">Completed</option>
+                {{--<div class="form-group">--}}
+                    {{--<label for="">Task Status</label>--}}
+                    {{--<select name="taskStatus" class="form-control">--}}
+                        {{--<option value="">Task Status</option>--}}
+                        {{--<option value="pending">Pending</option>--}}
+                        {{--<option value="completed">Completed</option>--}}
 
 
-                    </select>
-                </div>
+                    {{--</select>--}}
+                {{--</div>--}}
                 <div class="form-group">
                     <input type="submit" value="submit" class="btn btn-primary">
                 </div>

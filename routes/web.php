@@ -27,8 +27,9 @@ Route::prefix('/admin')->group(function () {
 });
 Route::get("/panel",[\App\Http\Controllers\Panel\HomeController::class,'index'])->name("panel")->middleware("role:User");
 Route::prefix('panel')->group(function () {
-  Route::get("/project/{id}",[\App\Http\Controllers\Panel\ProjectController::class,'index'])->name("projectInfo")->middleware("role:User");;
+  Route::get("/project/{pid}",[\App\Http\Controllers\Panel\ProjectController::class,'index'])->name("projectInfo")->middleware("role:User");;
   Route::resource("/project/{pid}/task",\App\Http\Controllers\Panel\TaskController::class)->middleware("role:User");
-
+    Route::resource("/project/{pid}/task/{tid}/comment",\App\Http\Controllers\Panel\TaskCommentController::class)->middleware("role:User");
+  Route::get("my-task",[\App\Http\Controllers\Panel\MyTaskController::class,'index'])->name("myTask");
 
 });

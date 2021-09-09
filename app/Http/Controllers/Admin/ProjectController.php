@@ -162,14 +162,11 @@ class ProjectController extends Controller
     public function destroy($id)
     {
         $model = Project::findOrFail($id);
-        $members = $model->projectMembers;
-        if($members !=null)
-        {
-            foreach ($members as $member)
-            {
-                $member->delete();
-            }
-        }
+        $model->taskComments()->delete();
+        $model->task()->delete();
+        $model->projectMembers()->delete();
+
+
         $model->delete();
         return redirect()->route("project.index");
     }

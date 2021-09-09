@@ -19,4 +19,12 @@ class Project extends Model
     {
         return $this->hasMany(ProjectMember::class,'project_id',"id");
     }
+    public function task()
+    {
+        return $this->hasMany(Task::class,"project_id","id");
+    }
+    public function taskComments()
+    {
+        return $this->hasManyThrough(TaskComment::class,Task::class,"project_id","task_id","id","id");
+    }
 }
